@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 
+
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
@@ -20,6 +22,7 @@
           <tr>
             <th scope="col">Short URL ID</th>
             <th scope="col">Long URL</th>
+            <th scope="col">Delete</th>
           </tr>
         </thead>
         <tbody>
@@ -30,6 +33,9 @@
               </td>
               <td>
                 <%= urls[id] %>
+              </td>
+              <td>
+                <form method="POST" action="/urls/<%= id %>/delete"><button type="Submit">delete</button></form>
               </td>
             </tr>
             <% } %>
