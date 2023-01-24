@@ -1,7 +1,15 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
-function generateRandomString() {}
+function generateRandomString() {
+  let sequence = '';
+  let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  let charactersLength = characters.length;
+  for (let i = 0; i < 6; i++) {
+    sequence += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return sequence;
+}
 
 
 app.set("view engine", "ejs");
@@ -13,9 +21,12 @@ const urlDatabase = {
 
 app.use(express.urlencoded({ extended: true }));
 
+//POST request to /urls it responds with a redirection to /urls/:id.
 app.post("/urls", (req, res) => {
   console.log(req.body); // Log the POST request body to the console
-  res.send("Ok"); // Respond with 'Ok' (we will replace this)
+  let shortURL = generateRandomString();
+  urlDatabase[shortURL] = req.body.longURL;
+  res.redirect(`/urls/${shortURL}`); // Respond with 'Ok' (we will replace this)
 });
 
 app.get("/", (req, res) => {
@@ -42,6 +53,11 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
   res.render("urls_show", templateVars);
+});
+
+app.get("/u/:id", (req, res) => {
+  const longURL = urlDatabase[req.params.id];
+  res.redirect(longURL);
 });
 
 app.listen(PORT, () => {
