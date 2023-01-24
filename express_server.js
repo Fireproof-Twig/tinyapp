@@ -36,6 +36,11 @@ app.post("/login", (req, res) => {
   res.redirect("/urls")
 })
 
+app.post("/logout", (req, res) => {
+  res.clearCookie('username', req.body["username"]);
+  res.redirect("/urls")
+})
+
 app.post("/urls/:id/edit", (req, res) => {
   urlDatabase[req.params.id] = req.body.longURL;
   res.redirect("/urls")

@@ -9,16 +9,21 @@
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
-        <form class="form-inline" action="/login/" method="POST">
-          <div class="form-group mb-2">
-            <label for="longURL">Username:</label>
-            <input class="form-control" type="text" name="username" placeholder="" style="width: 300px; margin: 1em" />
-            <button type="submit" class="btn btn-primary">Submit</button>
-          </div>
-        </form>
-        <p class="card-text">
-          <%= username %>
-        </p>
+        <% if(!username) { %>
+          <form class="form-inline" action="/login/" method="POST">
+            <div class="form-group mb-2">
+              <label for="longURL">Username:</label>
+              <input class="form-control" type="text" name="username" placeholder=""
+                style="width: 300px; margin: 1em" />
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </form>
+          <% } else{ %>
+            <form method="POST" action="/logout"><button type="Submit">logout</button></form>
+            <p class="card-text">
+              <%= username %>
+            </p>
+            <% } %>
       </div>
     </div>
   </nav>
