@@ -1,7 +1,12 @@
 const express = require("express");
-const cookieParser = require('cookie-parser')
+// const cookieParser = require('cookie-parser')
+const cookieSession = require('cookie-session')
 const app = express();
-app.use(cookieParser())
+// app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2'],
+}))
 const PORT = 8080; // default port 8080
 const bcrypt = require("bcryptjs");
 function generateRandomString() {
@@ -68,7 +73,7 @@ app.use(express.urlencoded({ extended: true }));
 
 //POST request to /urls it responds with a redirection to /urls/:id.
 app.post("/urls", (req, res) => {
-  if (!req.cookies["user_id"]) {
+  if (!req.session.user_id) {
     return res.send("not logged in")
   }
 
@@ -76,7 +81,7 @@ app.post("/urls", (req, res) => {
   let shortURL = generateRandomString();
   urlDatabase[shortURL] = {
     longURL: "placeholder",
-    userID: req.cookies["user_id"]
+    userID: req.session.user_id
   };
   urlDatabase[shortURL].longURL = req.body.longURL;
   res.redirect(`/urls/${shortURL}`); // Respond with 'Ok' (we will replace this)
@@ -99,13 +104,14 @@ app.post("/login", (req, res) => {
     return res.status(403).send("Bad password")
   }
 
-  res.cookie('user_id', user.id);
+  req.session.user_id = user.id;
 
   res.redirect("/urls")
 })
 
 app.post("/logout", (req, res) => {
-  res.clearCookie('user_id', req.body["user_id"]);
+  req.session = null;
+  // res.clearCookie('user_id', req.body["user_id"]);
   res.redirect("/login")
 })
 
@@ -124,7 +130,7 @@ app.post("/register", (req, res) => {
   const IDRandomizer = "user" + generateRandomString();
   // console.log(IDRandomizer);
   users[IDRandomizer] = {id: IDRandomizer, email: email, password: hashedPassword};
-  res.cookie('user_id', IDRandomizer);
+  req.session.user_id = IDRandomizer;
   console.log(users);
   res.redirect("/urls");
 })
@@ -133,10 +139,10 @@ app.post("/urls/:id/edit", (req, res) => {
   if (!urlDatabase[req.params.id]) {
     return res.send("short url does not exist")
   }
-  if (!req.cookies["user_id"]) {
+  if (!req.session.user_id) {
     return res.send("not logged in")
   }
-  const filtered = urlsForUser(req.cookies["user_id"]);
+  const filtered = urlsForUser(req.session.user_id);
   if (!filtered[req.params.id]) {
    return res.send("url does not belong to you.")
   }
@@ -149,10 +155,10 @@ app.post("/urls/:id/delete", (req, res) => {
   if (!urlDatabase[req.params.id]) {
     return res.send("short url does not exist")
   }
-  if (!req.cookies["user_id"]) {
+  if (!req.session.user_id) {
     return res.send("not logged in")
   }
-  const filtered = urlsForUser(req.cookies["user_id"]);
+  const filtered = urlsForUser(req.session.user_id);
   if (!filtered[req.params.id]) {
    return res.send("url does not belong to you.")
   }
@@ -174,22 +180,22 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  if (!req.cookies["user_id"]) {
+  if (!req.session.user_id) {
     return res.send("not logged in")
   }
-  const filtered = urlsForUser(req.cookies["user_id"]);
+  const filtered = urlsForUser(req.session.user_id);
 
-  const storeUserId = req.cookies["user_id"];
+  const storeUserId = req.session.user_id;
   const templateVars = { user: users[storeUserId], urls: filtered };
   // console.log(users[storeUserId])
   res.render("urls_index", templateVars);
 });
 
 app.get("/login", (req, res) => {
-  if (req.cookies["user_id"]) {
+  if (req.session.user_id) {
     res.redirect("/urls")
   }
-  const storeUserId = req.cookies["user_id"];
+  const storeUserId = req.session.user_id;
   const templateVars = {
     user: users[storeUserId],
   };
@@ -197,10 +203,10 @@ app.get("/login", (req, res) => {
 })
 
 app.get("/register", (req, res) => {
-  if (req.cookies["user_id"]) {
+  if (req.session.user_id) {
     res.redirect("/urls")
   }
-  const storeUserId = req.cookies["user_id"];
+  const storeUserId = req.session.user_id;
   const templateVars = {
     user: users[storeUserId],
   };
@@ -208,10 +214,10 @@ app.get("/register", (req, res) => {
 })
 
 app.get("/urls/new", (req, res) => {
-  if (!req.cookies["user_id"]) {
+  if (!req.session.user_id) {
    return res.redirect("/login")
   }
-  const storeUserId = req.cookies["user_id"];
+  const storeUserId = req.session.user_id;
   const templateVars = {
     user: users[storeUserId]
   };
@@ -219,14 +225,14 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  if (!req.cookies["user_id"]) {
+  if (!req.session.user_id) {
     return res.send("not logged in")
    };
-   const filtered = urlsForUser(req.cookies["user_id"]);
+   const filtered = urlsForUser(req.session.user_id);
    if (!filtered[req.params.id]) {
     return res.send("url does not belong to you.")
    }
-  const storeUserId = req.cookies["user_id"];
+  const storeUserId = req.session.user_id;
   const templateVars = {   user: users[storeUserId], id: req.params.id, longURL: urlDatabase[req.params.id].longURL };
   res.render("urls_show", templateVars);
 });
