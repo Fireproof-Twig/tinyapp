@@ -3,6 +3,7 @@ const cookieParser = require('cookie-parser')
 const app = express();
 app.use(cookieParser())
 const PORT = 8080; // default port 8080
+const bcrypt = require("bcryptjs");
 function generateRandomString() {
   let sequence = '';
   let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
@@ -84,32 +85,22 @@ app.post("/urls", (req, res) => {
 app.post("/login", (req, res) => {
   const email = req.body.email
   const password = req.body.password
-  
+  const user = getUserByEmail(email);
+
   
   if (!email || !password) {
-    return res.send("400 Email or password should not be blank")
+    return res.status(403).send("Email and password should not be blank")
   }
 
-  const user = getUserByEmail(email);
   if (!user) {
     return res.status(403).send("User not found")
   }
-  if (user.password !== password) {
+  if (bcrypt.compareSync(password, user.password) === false) {
     return res.status(403).send("Bad password")
   }
 
-
-
-  // if (req.body['email'] === "" || req.body['password'] === "") {
-  //   res.send("400 Bad Request")
-  // }
-  // const person = validateUnusedEmail();
-  // if (validateUnusedEmail(req.body['email']) !== null) {
-  //   res.send("400 Bad Request")
-  // }
   res.cookie('user_id', user.id);
 
-  // console.log(req.body.user_id["id"])
   res.redirect("/urls")
 })
 
@@ -121,6 +112,7 @@ app.post("/logout", (req, res) => {
 app.post("/register", (req, res) => {
   const email = req.body.email
   const password = req.body.password
+  const hashedPassword = bcrypt.hashSync(password, 10)
   if (email === "" || password === "") {
     res.status(400).send("Blank fields")
     return;
@@ -131,9 +123,9 @@ app.post("/register", (req, res) => {
   }
   const IDRandomizer = "user" + generateRandomString();
   // console.log(IDRandomizer);
-  users[IDRandomizer] = {id: IDRandomizer, email: req.body["email"], password: req.body["password"]};
+  users[IDRandomizer] = {id: IDRandomizer, email: email, password: hashedPassword};
   res.cookie('user_id', IDRandomizer);
-  // console.log(users);
+  console.log(users);
   res.redirect("/urls");
 })
 
