@@ -1,4 +1,5 @@
 const express = require("express");
+const helpers = require('./helpers')
 // const cookieParser = require('cookie-parser')
 const cookieSession = require('cookie-session')
 const app = express();
@@ -19,14 +20,23 @@ function generateRandomString() {
   return sequence;
 }
 
-function getUserByEmail(givenEmail) {
-  for (const user in users) {
-    if (givenEmail === users[user].email) {
-      return users[user];
-    }
-  }
-  return;
-}
+// function getUserByEmail(givenEmail) {
+//   for (const user in users) {
+//     if (givenEmail === users[user].email) {
+//       return users[user];
+//     }
+//   }
+//   return;
+// }
+
+// const getUserByEmail = function(email, database) {
+//   for (const user in database) {
+//     if (email === database[user].email) {
+//       return database[user];
+//     }
+//   }
+//   return;
+// };
 
 function urlsForUser(id) {
   const newObject = {};
@@ -90,7 +100,7 @@ app.post("/urls", (req, res) => {
 app.post("/login", (req, res) => {
   const email = req.body.email
   const password = req.body.password
-  const user = getUserByEmail(email);
+  const user = helpers.getUserByEmail(email, users);
 
   
   if (!email || !password) {
@@ -123,7 +133,7 @@ app.post("/register", (req, res) => {
     res.status(400).send("Blank fields")
     return;
   }
-  if (getUserByEmail(email)) {
+  if (helpers.getUserByEmail(email, users)) {
     res.status(400).send("email registered already")
     return;
   }
