@@ -112,10 +112,8 @@ app.post("/register", (req, res) => {
     return;
   }
   const IDRandomizer = "user" + generateRandomString();
-  // console.log(IDRandomizer);
   users[IDRandomizer] = {id: IDRandomizer, email: email, password: hashedPassword};
   req.session.user_id = IDRandomizer;
-  console.log(users);
   res.redirect("/urls");
 });
 
@@ -177,7 +175,6 @@ app.get("/urls", (req, res) => {
 
   const storeUserId = req.session.user_id;
   const templateVars = { user: users[storeUserId], urls: filtered };
-  // console.log(users[storeUserId])
   res.render("urls_index", templateVars);
 });
 
